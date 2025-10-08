@@ -2,8 +2,6 @@ import collections
 from transformers import pipeline
 import config
 
-CONVERSATION_HISTORY = collections.deque(maxlen=config.ESCALATION_HISTORY_SIZE)
-
 def load_all_models():
     print("-> Loading Abuse Detector...")
     loaded_models = {}
@@ -21,13 +19,13 @@ def load_all_models():
 def analyze_abuse(text, models_dict):
     predictions = models_dict['abuse'](text)[0]
     toxic_score = next((p['score'] for p in predictions if p['label'] == 'toxic'), 0.0)
-    return {"is_abusive": toxic_score > config.ABUSE_THRESHOLD, "confidence": round(toxic_score, 2)}
+    return {"is_abusive": toxic_score > config.ABUSE_THRESHOLD, "Abuse Score": round(toxic_score, 2)}
 
 def analyze_crisis(text, models_dict):
     predictions = models_dict['crisis'](text)[0]
     for pred in predictions:
         if pred['label'] in config.CRISIS_EMOTIONS and pred['score'] > config.CRISIS_THRESHOLD:
-            return {"is_crisis": True, "emotion": pred['label'], "confidence": round(pred['score'], 2)}
+            return {"is_crisis": True, "emotion": pred['label'], "Crisis Score": round(pred['score'], 2)}
     return {"is_crisis": False}
 
 def filter_content(text, age_profile, models_dict):
@@ -43,10 +41,12 @@ def filter_content(text, age_profile, models_dict):
             return {"is_blocked": True, "reason": f"Topic '{topic_results['labels'][0]}'"}
     return {"is_blocked": False}
 
-def analyze_escalation(text, models_dict):
+def analyze_escalation(text, models_dict,conversation_history):
+    CONVERSATION_HISTORY=conversation_history
     sentiment = models_dict['sentiment'](text)[0]
     score = -sentiment['score'] if sentiment['label'] == 'NEGATIVE' else sentiment['score']
     CONVERSATION_HISTORY.append(score)
+    print(f"Updated Conversation History: {list(CONVERSATION_HISTORY)}")
 
     if len(CONVERSATION_HISTORY) < 3:
         return {"status": "Stable", "reason": "Not enough history."}
@@ -56,7 +56,7 @@ def analyze_escalation(text, models_dict):
         return {"status": "Medium", "reason": "Overall sentiment is negative."}
     return {"status": "Stable", "reason": "Conversation appears stable."}
 
-def analyze_message_fully(text, user_profile, models_dict):
+def analyze_message_fully(text, user_profile, models_dict,conversation_history):
     abuse_result = analyze_abuse(text, models_dict)
     crisis_result = analyze_crisis(text, models_dict)
     
@@ -70,7 +70,7 @@ def analyze_message_fully(text, user_profile, models_dict):
     filter_result = filter_content(text, age_profile_string, models_dict)
     # -----------------------
 
-    escalation_result = analyze_escalation(text, models_dict)
+    escalation_result = analyze_escalation(text, models_dict,conversation_history)
 
     final_action = "Allow"
     if abuse_result["is_abusive"] or filter_result["is_blocked"]:

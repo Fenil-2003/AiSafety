@@ -1,5 +1,7 @@
 import streamlit as st
 import models
+import collections
+import config
 from colorama import Fore, Style
 
 # --- Model Loading (with Caching) ---
@@ -23,8 +25,8 @@ loaded_models = load_cached_models()
 # --- State Initialization ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "escalation_history" not in st.session_state:
-    models.CONVERSATION_HISTORY.clear()
+if "conversation_history" not in st.session_state:
+    st.session_state.conversation_history = collections.deque(maxlen=config.ESCALATION_HISTORY_SIZE)
 
 # --- Sidebar ---
 st.sidebar.title("Chat Controls")
@@ -38,7 +40,7 @@ age_profile = st.sidebar.select_slider(
 
 if st.sidebar.button("Clear Chat History"):
     st.session_state.messages = []
-    models.CONVERSATION_HISTORY.clear()
+    st.session_state.conversation_history.clear() # Clear the history in the session state
     st.rerun()
 
 # --- Main Chat ---
@@ -61,7 +63,7 @@ if prompt := st.chat_input("What do you want to say?"):
 
     # Pass the loaded_models dictionary into the analysis function
     user_profile = {"age_profile": age_profile}
-    analysis_results = models.analyze_message_fully(prompt, user_profile, loaded_models)
+    analysis_results = models.analyze_message_fully(prompt, user_profile, loaded_models,st.session_state.conversation_history)
     
     with st.chat_message("assistant", avatar="🛡️"):
         st.markdown("_Here is the AI's analysis of the message:_")
