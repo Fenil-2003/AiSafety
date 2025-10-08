@@ -1,45 +1,68 @@
-# AI Safety Models - Functional POC
+# AI Safety Chat Simulator
 
-This repository contains a Proof of Concept (POC) for a suite of AI Safety Models, written in a simple, function-based style. The entire application logic is contained within a single Python file (`main.py`).
+This repository contains a functional Proof of Concept (POC) for a suite of AI safety models, designed to analyze chat messages in real-time. It includes two interfaces: a command-line simulator and a web-based version built with Streamlit.
 
 ## Features
 
-1.  **Abuse Language Detection**: Identifies toxic and harmful content.
-2.  **Escalation Pattern Recognition**: Tracks conversation sentiment to detect when a discussion is becoming negative.
-3.  **Crisis Intervention**: A proxy model that detects strong negative emotions (sadness, fear) which could indicate user distress.
-4.  **Content Filtering**: Filters content based on user age profiles (child, teen, adult) using keywords and topic analysis.
+1.  **Abuse Language Detection**: Identifies toxic and harmful content using a fine-tuned toxic comment classifier.
+2.  **Crisis Intervention**: Detects strong negative emotions (e.g., sadness, fear) that could indicate user distress.
+3.  **Content Filtering**: Blocks messages based on user age profiles (child, teen, adult) using both keyword matching and zero-shot topic classification.
+4.  **Escalation Recognition**: Tracks conversation sentiment over time to detect when a discussion is becoming consistently negative.
 
 ## Setup
 
-1.  **Create a folder and place the files inside:**
-    Create a folder named `ai_safety_poc_functional` and put `main.py` and `requirements.txt` inside it.
-
-2.  **Install dependencies:**
-    It's recommended to use a virtual environment.
+1.  **Clone the repository:**
     ```bash
-    # Navigate to your folder
-    cd AiSAFETY
+    git clone https://github.com/Fenil-2003/AiSafety.git
+    cd AiSafety
+    ```
 
-    # Create and activate a virtual environment
+2.  **Create and activate a virtual environment:**
+    It's highly recommended to use a virtual environment to manage dependencies.
+    ```bash
+    # Create a virtual environment
     python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
-    # Install the required packages
+    # Activate it
+    # On macOS/Linux:
+    source venv/bin/activate
+    # On Windows:
+    # venv\Scripts\activate
+    ```
+
+3.  **Install the required packages:**
+    ```bash
     pip install -r requirements.txt
     ```
-    *Note: The first time you run the application, it will download several hundred megabytes of model weights from Hugging Face. This is a one-time process.*
+    **Note**: The first time you run either application, it will download several hundred megabytes of model weights from Hugging Face. This is a one-time process per model.
 
-## How to Run
+## How to Run the Simulators
 
-Execute the `main.py` script to start the interactive command-line chat simulator:
+You can run the simulator in two ways:
 
+### 1. Command-Line Interface (CLI)
+
+This runs a simple, interactive chat simulator directly in your terminal.
+
+**To run:**
 ```bash
 python main.py
 ```
 
-### Simulator Commands
-
+**Simulator Commands:**
 -   Type any message to have it analyzed by the AI safety system.
 -   `.switch`: Toggles between `UserA` (adult) and `UserB` (child) and clears the conversation history.
 -   `.setage [child|teen|adult]`: Changes the age profile for the current user.
--   `.exit`: Exits the simulator.                                                                                               
+-   `.exit`: Exits the simulator.
+
+### 2. Web Interface (Streamlit)
+
+This launches a user-friendly web application where you can interact with the models visually.
+
+**To run:**
+```bash
+streamlit run app.py
+```
+
+Your web browser should open with the application running. You can use the sidebar to switch between users, set age profiles, and clear the chat history.
+           
